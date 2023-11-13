@@ -1,12 +1,19 @@
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
-
 from django.db import models
-
-# usuario de login no sistema
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
+
+    # Método para criar categorias padrão ao criar um novo usuário
+    def save(self, *args, **kwargs):
+        is_new = self._state.adding
+        super().save(*args, **kwargs)
+        if is_new:
+            CategoriaDespesa.objects.create(usuario=self, nome='Despesas Fixas')
+            CategoriaDespesa.objects.create(usuario=self, nome='Despesas Variaveis')
+            CategoriaRenda.objects.create(usuario=self, nome='Salário')
+            CategoriaRenda.objects.create(usuario=self, nome='Renda Extra')
 
 class CategoriaDespesa(models.Model):
     nome = models.CharField(max_length=100)
@@ -38,6 +45,3 @@ class Renda(models.Model):
     data = models.DateField()
     descricao = models.TextField(null=True, blank=True)
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.categoria.nome} - {self.valor} em {self.data}"
