@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ValidationError
+from dataclasses import dataclass
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
@@ -8,40 +10,37 @@ class CustomUser(AbstractUser):
     # Método para criar categorias padrão ao criar um novo usuário
     def save(self, *args, **kwargs):
         is_new = self._state.adding
-        super().save(*args, **kwargs)
-        if is_new:
-            CategoriaDespesa.objects.create(usuario=self, nome='Despesas Fixas')
-            CategoriaDespesa.objects.create(usuario=self, nome='Despesas Variaveis')
-            CategoriaRenda.objects.create(usuario=self, nome='Salário')
-            CategoriaRenda.objects.create(usuario=self, nome='Renda Extra')
+        super().save(*args, **kwargs)   
 
-class CategoriaDespesa(models.Model):
-    nome = models.CharField(max_length=100)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.nome
+class FluxoDeCaixa(models.Model):
+    @dataclass
+    class TIPOS:
+        fixa = ("fixa", "Fixa")
+        variavel = ("variavel", "Variável")
+        renda = ('renda', 'Renda')
+        despesa = ('despesa', 'Despesa')
 
-class Despesa(models.Model):
-    categoria = models.ForeignKey(CategoriaDespesa, on_delete=models.CASCADE, related_name='despesas')
+    _TIPOS = (TIPOS.renda, TIPOS.despesa)
+    _SUB_TIPOS = (TIPOS.fixa, TIPOS.variavel)
+    tipo = models.CharField(choices=_TIPOS, max_length=8)    
+    sub_tipo = models.CharField(choices=_SUB_TIPOS, max_length=8)   
+    categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE, null=True, blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField()
-    descricao = models.TextField(null=True, blank=True)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    paga = models.BooleanField(default=False)
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.categoria.nome} - {self.valor} em {self.data}"
-
-class CategoriaRenda(models.Model):
-    nome = models.CharField(max_length=100)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.nome
+        return f"{self.tipo} - {self.valor} em {self.data}"
     
-class Renda(models.Model):
-    categoria = models.ForeignKey(CategoriaRenda, on_delete=models.CASCADE, related_name='rendas')
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
-    data = models.DateField()
+
+class Categoria(models.Model):    
+    nome = models.CharField(max_length=100)    
     descricao = models.TextField(null=True, blank=True)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.nome} - {self.descricao}"
+
+    
+

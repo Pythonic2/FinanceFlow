@@ -1,10 +1,8 @@
 from django.contrib import admin
 
 # Register your models here.
-from core.models import CustomUser, CategoriaDespesa, Despesa, CategoriaRenda, Renda
+from core.models import CustomUser, FluxoDeCaixa, Categoria
 
 admin.site.register(CustomUser)
-admin.site.register(CategoriaDespesa)
-admin.site.register(Despesa)
-admin.site.register(CategoriaRenda)
-admin.site.register(Renda)
+admin.site.register(FluxoDeCaixa)
+admin.site.register(Categoria)

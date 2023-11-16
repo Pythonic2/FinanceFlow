@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from .models import Renda, Despesa
 from django.db.models import Sum
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
@@ -9,7 +8,7 @@ from django.views import generic
 from .forms import CustomUserCreationForm
 from django.contrib.auth import get_user_model
 import logging
-from .models import CategoriaRenda, CategoriaDespesa
+from .models import Categoria, FluxoDeCaixa as FC 
 
 
 logger = logging.getLogger(__name__)
@@ -51,36 +50,30 @@ class SignUpView(generic.CreateView):
 class Index(TemplateView):
     template_name = 'index.html'
 
-    def soma_total_despesas(self, usuario):
-        return Despesa.objects.filter(usuario=usuario).aggregate(soma_total=Sum('valor'))['soma_total'] or 0
-
-    def soma_total_rendas(self, usuario):
-        return Renda.objects.filter(usuario=usuario).aggregate(soma_total=Sum('valor'))['soma_total'] or 0
+    def soma_total(self, usuario, tipo:str, sub_tipo:str=None):
+        if not sub_tipo:
+            return FC.objects.filter(
+                usuario=usuario, 
+                tipo=tipo       
+                ).aggregate(soma_total=Sum('valor'))['soma_total']
+        return FC.objects.filter(
+                usuario=usuario, 
+                tipo=tipo,
+                sub_tipo=sub_tipo
+                ).aggregate(soma_total=Sum('valor'))['soma_total']
 
     def get(self, request, *args, **kwargs):
-        renda_total = self.soma_total_rendas(request.user)
-        despesa_total = self.soma_total_despesas(request.user)
-        
-        usuario_logado = request.user
-        
-        if usuario_logado.is_authenticated:
-            print(f"Usuário logado: {usuario_logado.username}") 
-        else:
-            print("Nenhum usuário logado")
-            
-        
-        categorias_renda = CategoriaRenda.objects.filter(
-            usuario=request.user,
-            nome__in=['Salário', 'Renda Extra']
-        )
+        ctx = {}
+        usuario = request.user
+        tipos = [FC.TIPOS.renda[0], FC.TIPOS.despesa[0]]
+        sub_tipos = [FC.TIPOS.variavel[0], FC.TIPOS.fixa[0]]
 
-        # Filtra as categorias de despesa específicas
-        categorias_despesa = CategoriaDespesa.objects.filter(
-            usuario=request.user,
-            nome__in=['Despesas Fixas', 'Despesas Variáveis']
-        )
-        for cat in categorias_renda:
-            print(cat.nome)
+        ctx['usuario'] = usuario
+
+        for tipo in tipos:
+            ctx[f'{tipo}_total'] = self.soma_total(usuario, tipo=tipo)
+            for sub_tipo in sub_tipos:
+                ctx[f"{tipo}_{sub_tipo}"] = self.soma_total(usuario,tipo=tipo,sub_tipo=sub_tipo)       
         
-        return render(request, self.template_name, {'usuario':usuario_logado.username,'renda_total': renda_total, 'despesa_total': despesa_total, 'categoria_renda':categorias_renda,'categoria_despesa':categorias_despesa})
+        return render(request, self.template_name, ctx)
 

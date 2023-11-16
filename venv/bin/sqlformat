@@ -1,4 +1,4 @@
-#!/home/igor/git/FinanceFlow-main/venv/bin/python3
+#!/home/igor/git/FinanceFlow/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

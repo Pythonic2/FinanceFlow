@@ -1,0 +1,11 @@
+
+
+
+
+gastei 10 reais no mercado
+
+10 (D/L) (categoria)
+
+
+for c in categoria:
+    d/l
