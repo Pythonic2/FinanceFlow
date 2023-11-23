@@ -1,6 +1,33 @@
  <!-- Page Heading -->
  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-            class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+        
+    <h1 class="h3 mb-0 text-gray-800">{{titulo}}</h1>
+    <span>
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" id="message">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    </span>
+    
+    <script>
+        setTimeout(function() {
+            var messageElement = document.getElementById('message');
+            if (messageElement) {
+                messageElement.style.display = 'none';
+            }
+        }, 3000); // A mensagem desaparecerá após 5000 milissegundos (5 segundos)
+    </script>
+    
+    
+    <a href="{%url 'new_category'%}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" style="margin-right: -25%;"><i
+            class="fas fa-download fa-sm text-white-50"></i> Nova Categoria</a>
+            <a href="{%url 'new_category'%}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                class="fas fa-download fa-sm text-white-50"></i> Entradas/Saídas</a>
+
+            <!-- <a href="#" data-toggle="modal" data-target="#logoutModal2" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                class="fas fa-download fa-sm text-white-50"></i> Entrada/Saída</a> -->
 </div>
+

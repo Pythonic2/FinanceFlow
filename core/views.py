@@ -1,18 +1,24 @@
+from typing import Any
+from django import http
+from django.db.models.query import QuerySet
+from django.forms.models import BaseModelForm
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.db.models import Sum
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.views import generic
+from django.views.generic import CreateView, ListView,DeleteView, UpdateView
 from .forms import CustomUserCreationForm
 from django.contrib.auth import get_user_model
 import logging
 from .models import Categoria, FluxoDeCaixa as FC 
-
-
+from .forms import CategoriaForm, FluxoDeCaixaForm
+from django.utils import timezone
 logger = logging.getLogger(__name__)
 from django.contrib.auth import user_logged_in
+
 
 User = get_user_model()
 
@@ -31,7 +37,7 @@ class CustomLoginView(LoginView):
         return super().form_invalid(form)
 
 
-class SignUpView(generic.CreateView):
+class SignUpView(CreateView):
     form_class = CustomUserCreationForm
     success_url = reverse_lazy('login')
     template_name = 'register.html'
@@ -49,7 +55,6 @@ class SignUpView(generic.CreateView):
         
 class Index(TemplateView):
     template_name = 'index.html'
-
     def soma_total(self, usuario, tipo:str, sub_tipo:str=None):
         if not sub_tipo:
             return FC.objects.filter(
@@ -65,15 +70,84 @@ class Index(TemplateView):
     def get(self, request, *args, **kwargs):
         ctx = {}
         usuario = request.user
-        tipos = [FC.TIPOS.renda[0], FC.TIPOS.despesa[0]]
-        sub_tipos = [FC.TIPOS.variavel[0], FC.TIPOS.fixa[0]]
+        if usuario.is_authenticated:
+            # Filtrar categorias pelo usuário logado
+            categorias_usuario = Categoria.objects.filter(usuario=usuario)
 
-        ctx['usuario'] = usuario
-
-        for tipo in tipos:
-            ctx[f'{tipo}_total'] = self.soma_total(usuario, tipo=tipo)
-            for sub_tipo in sub_tipos:
-                ctx[f"{tipo}_{sub_tipo}"] = self.soma_total(usuario,tipo=tipo,sub_tipo=sub_tipo)       
-        
+            # Adicionar categorias ao contexto
+            ctx['categorias'] = categorias_usuario
+            tipos = [FC.TIPOS.renda[0], FC.TIPOS.despesa[0]]
+            sub_tipos = [FC.TIPOS.variavel[0], FC.TIPOS.fixa[0]]
+            
+            ctx['usuario'] = usuario
+            for tipo in tipos:
+                ctx[f'{tipo}_total'] = self.soma_total(usuario, tipo=tipo)
+                for sub_tipo in sub_tipos:
+                    ctx[f"{tipo}_{sub_tipo}"] = self.soma_total(usuario,tipo=tipo,sub_tipo=sub_tipo)       
+            ctx['form'] = CategoriaForm()
+            ctx['fc'] = FluxoDeCaixaForm(user=usuario)
+            ctx['titulo'] = 'Dashboard'
+            
         return render(request, self.template_name, ctx)
 
+
+
+
+
+
+    
+class NewFlux(CreateView):
+    form_class = FluxoDeCaixaForm
+    
+    success_url = reverse_lazy('index')
+
+    def get_form_kwargs(self):
+        kwargs = super(NewFlux, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        fluxo_de_caixa = form.save(commit=False)
+        fluxo_de_caixa.usuario = self.request.user  # Definindo o usuário logado como o usuário do fluxo de caixa
+        fluxo_de_caixa.save()
+        messages.success(self.request, 'Entrada/Saída cadastrada com sucesso.')
+        return super(NewFlux, self).form_valid(form)
+
+
+class NewCategory(CreateView):
+    form_class = CategoriaForm
+    template_name = 'new_category.html'
+    success_url = reverse_lazy('category_list')
+    
+    def form_valid(self, form):
+        categoria = form.save(commit=False)
+        categoria.usuario = self.request.user  # Associando a categoria ao usuário logado
+        categoria.save()
+        messages.success(self.request, 'Categoria Cadastrada com Sucesso')
+        return super().form_valid(form)
+    
+
+class ListCategory(ListView):
+    model = Categoria
+    template_name = 'categoria_list.html'
+    def get_queryset(self) -> QuerySet[Any]:
+        return Categoria.objects.filter(usuario=self.request.user)
+    def get_context_data(self, **kwargs):
+        # Chame a implementação base para obter um contexto
+        context = super().get_context_data(**kwargs)
+        # Adicione suas variáveis ao contexto
+        context['titulo'] = 'Lista de Categorias'
+
+        return context
+   
+
+class UpdateCategory(UpdateView):
+    model = Categoria
+    form_class = CategoriaForm
+    template_name = 'categoria_edite.html'
+    success_url = reverse_lazy('category_list')
+    
+class DeletCategory(DeleteView):
+    model = Categoria
+    success_url = reverse_lazy('category_list')
+    template_name = 'categoria_confirm_delete.html'

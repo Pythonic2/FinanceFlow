@@ -1,20 +1,42 @@
 {%load static%}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 
 <head>
- {% include 'parciais/header.html'%}
+    
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>oi
+    </title>
+
+    <!-- Custom fonts for this template-->
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{% static 'css/sb-admin-2.min.css'%}" rel="stylesheet">
+
 </head>
 
-
 <body id="page-top">
+    
+
     <!-- Page Wrapper -->
     <div id="wrapper">
+
         {%include 'parciais/sidebar.html'%}
         
         <!-- End of Sidebar -->
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
+
             <!-- Main Content -->
             <div id="content">
                 <!-- Topbar -->
@@ -22,33 +44,46 @@
                 <!-- End of Topbar -->
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-                   {%include 'parciais/page_heading.html'%}
                     <!-- Content Row -->
                     <div class="row">
                         <!-- Earnings (Monthly) Card Example -->
-                        {%include 'parciais/cards_values.html' with renda_total=renda_total%}
+
+                        <form action="{% url 'new_category'%}" method="post">
+                            {% csrf_token %}
+                            {{form.as_p}}
+                            <button type="submit" class="btn btn-primary btn-user btn-block">Cadastrar</button>
+                            <a class="btn btn-danger btn-user btn-block"  href="{% url 'category_list'%}"> Cancelar</a>
+
+                        </form>
                     </div>
                     <!-- Content Row -->
+
                     <div class="row">
+
                         <!-- Area Chart -->
-                        {%include 'parciais/graph_in_line.html'%}
-                        {%include 'parciais/graph_in_circle.html'%}
+
                     </div>
+
                     <!-- Content Row -->
                     <div class="row">
-                        
+
                         <!-- Content Column -->
                         <div class="col-lg-6 mb-4">
+
                             <!-- Project Card Example -->
-                            {%include 'parciais/proportions.html'%}
+                            
+
                             <!-- Color System -->
-                            {%include 'parciais/legends.html'%}
+
+
                         </div>
+
                         <div class="col-lg-6 mb-4">
+
                             <!-- Illustrations -->
-                            {%include 'parciais/suggestions.html'%}
                         </div>
                     </div>
+
                 </div>
                 <!-- /.container-fluid -->
 
