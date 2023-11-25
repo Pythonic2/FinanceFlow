@@ -19,6 +19,7 @@ class CustomUser(AbstractUser):
                 Permission.objects.get(codename='add_categoria'),
                 Permission.objects.get(codename='change_categoria'),
                 Permission.objects.get(codename='delete_categoria'),
+                
             ]
             for perm in permissions:
                 self.user_permissions.add(perm)
@@ -31,10 +32,17 @@ class FluxoDeCaixa(models.Model):
         variavel = ("variavel", "Variável")
         renda = ('renda', 'Renda')
         despesa = ('despesa', 'Despesa')
+    @dataclass
+    class TIPOS_NECESSIDADES:
+        essencial = ("essemcial", "Essencial")
+        desejos = ("desejos", "Desejo (Não essencial)")
+        investimentos = ("investimetos", "Investimento")
 
     _TIPOS = (TIPOS.renda, TIPOS.despesa)
     _SUB_TIPOS = (TIPOS.fixa, TIPOS.variavel)
-    tipo = models.CharField(choices=_TIPOS, max_length=8)    
+    _NECESSIDADES = (TIPOS_NECESSIDADES.essencial, TIPOS_NECESSIDADES.desejos, TIPOS_NECESSIDADES.investimentos)
+    tipo = models.CharField(choices=_TIPOS, max_length=8)
+    necessidade = models.CharField(choices=_NECESSIDADES, max_length=12, default='essencial')  
     sub_tipo = models.CharField(choices=_SUB_TIPOS, max_length=8)   
     categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE, null=True, blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)

@@ -35,7 +35,7 @@ class CategoriaForm(forms.ModelForm):
 class FluxoDeCaixaForm(forms.ModelForm):
     class Meta:
         model = FluxoDeCaixa
-        fields = ['tipo', 'sub_tipo', 'categoria', 'valor', 'data', 'paga']
+        fields = ['tipo', 'sub_tipo', 'categoria', 'valor', 'data', 'paga','necessidade']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -46,6 +46,7 @@ class FluxoDeCaixaForm(forms.ModelForm):
         if user is not None:
             self.fields['categoria'].queryset = Categoria.objects.filter(usuario=user)
         self.fields['categoria'].widget.attrs.update({'class': 'form-control form-control-user'})
+        self.fields['necessidade'].widget.attrs.update({'class': 'form-control form-control-user'})
         self.fields['valor'].widget.attrs.update({'class': 'form-control form-control-user', 'step': '0.01'})
         self.fields['data'].widget.attrs.update({'class': 'form-control form-control-user', 'type': 'date'})
         self.fields['paga'].widget.attrs.update({'class': 'form-check-input'})

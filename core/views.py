@@ -87,7 +87,27 @@ class Index(TemplateView):
             ctx['form'] = CategoriaForm()
             ctx['fc'] = FluxoDeCaixaForm(user=usuario)
             ctx['titulo'] = 'Dashboard'
+            count_nao_pagos = FC.objects.filter(paga=False, tipo='despesa').count()
+            count_pagos = FC.objects.filter(paga=True, tipo='despesa').count()
+            ctx['nao_pagos'] = count_nao_pagos
+            ctx['pagos'] = count_pagos
             
+            despesas = FC.objects.filter(tipo='despesa').count()
+            essenciais = FC.objects.filter(necessidade='essencial', tipo='despesa').count()
+            desejos = FC.objects.filter(necessidade='desejos', tipo='despesa').count()
+            investimentos = FC.objects.filter(necessidade='investimetos', tipo='despesa').count()
+            if despesas > 0:
+    # Calcula a porcentagem de cada categoria
+                porcentagem_essenciais = (essenciais / despesas) * 100
+                porcentagem_desejos = (desejos / despesas) * 100
+                porcentagem_investimentos = (investimentos / despesas) * 100
+
+                # Adiciona ao contexto
+                ctx['porcentagem_essenciais'] = round(porcentagem_essenciais, 2)
+                ctx['porcentagem_desejos'] = round(porcentagem_desejos, 2)
+                ctx['porcentagem_investimentos'] = round(porcentagem_investimentos, 2)
+            else:
+                ctx['porcentagem_essenciais'] = ctx['porcentagem_desejos'] = ctx['porcentagem_investimentos'] = 0
         return render(request, self.template_name, ctx)
 
 
@@ -97,8 +117,8 @@ class Index(TemplateView):
 
     
 class NewFlux(CreateView):
+    template_name = 'new_flux.html'
     form_class = FluxoDeCaixaForm
-    
     success_url = reverse_lazy('index')
 
     def get_form_kwargs(self):
@@ -108,7 +128,7 @@ class NewFlux(CreateView):
 
     def form_valid(self, form):
         fluxo_de_caixa = form.save(commit=False)
-        fluxo_de_caixa.usuario = self.request.user  # Definindo o usuário logado como o usuário do fluxo de caixa
+        fluxo_de_caixa.usuario = self.request.user
         fluxo_de_caixa.save()
         messages.success(self.request, 'Entrada/Saída cadastrada com sucesso.')
         return super(NewFlux, self).form_valid(form)
