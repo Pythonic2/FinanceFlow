@@ -34,15 +34,20 @@ class FluxoDeCaixa(models.Model):
         despesa = ('despesa', 'Despesa')
     @dataclass
     class TIPOS_NECESSIDADES:
-        essencial = ("essemcial", "Essencial")
+        essencial = ("essencial", "Essencial")
         desejos = ("desejos", "Desejo (Não essencial)")
         investimentos = ("investimetos", "Investimento")
-
+        nao_aplica = ("nao se aplica","Não se aplica")
     _TIPOS = (TIPOS.renda, TIPOS.despesa)
     _SUB_TIPOS = (TIPOS.fixa, TIPOS.variavel)
-    _NECESSIDADES = (TIPOS_NECESSIDADES.essencial, TIPOS_NECESSIDADES.desejos, TIPOS_NECESSIDADES.investimentos)
+    _NECESSIDADES = (
+            (TIPOS_NECESSIDADES.essencial),
+            (TIPOS_NECESSIDADES.desejos),
+            (TIPOS_NECESSIDADES.investimentos),
+            (TIPOS_NECESSIDADES.nao_aplica),
+        )    
     tipo = models.CharField(choices=_TIPOS, max_length=8)
-    necessidade = models.CharField(choices=_NECESSIDADES, max_length=12, default='essencial')  
+    necessidade = models.CharField(choices=_NECESSIDADES, max_length=13, default='essencial')  
     sub_tipo = models.CharField(choices=_SUB_TIPOS, max_length=8)   
     categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE, null=True, blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)

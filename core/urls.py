@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import Index
 from django.contrib.auth import views as auth_views
-from .views import CustomLoginView, SignUpView,NewCategory, ListCategory,NewFlux,UpdateCategory,DeletCategory
+from .views import CustomLoginView, SignUpView,NewCategory, ListCategory,NewFlux,UpdateCategory,DeletCategory, logout_view
 
 urlpatterns = [
     path("", Index.as_view(template_name="index.html"), name='index'),
@@ -12,5 +12,6 @@ urlpatterns = [
     path("list/", ListCategory.as_view(), name="category_list"),
     path("update/<int:pk>/", UpdateCategory.as_view(), name='update_category'),
     path("delete/<int:pk>/", DeletCategory.as_view(), name='delete_category'),
+    path("logout", logout_view, name='logout'),
 
 ]
